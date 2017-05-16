@@ -9,30 +9,27 @@ namespace TrafficLightsControlSystem
     class StreetCross
     {
         private int _ratioTreshold = 5;
+        public StreetCross NorthernStreetCross { get; set; }
+        //public StreetCross SouthStreetCross { get; private set; }
+        //public StreetCross WestStreetCross { get; private set; }
+        public StreetCross EasternStreetCross { get; set; }
         public double NRatio { get; private set; }
         public int DecideTime { get; private set; }
         public List<TrafficLight> TrafficLights = new List<TrafficLight>();
+        public TrafficLight NorthernTrafficLight { get; set; }
+        public TrafficLight EasternTrafficLight { get; set; }
 
-        public StreetCross(int dTime)
+        public StreetCross(int decideTime)
         {
-            DecideTime = dTime;
+            DecideTime = decideTime;
         }
         public void CalculateNRatio()
         {
             int waitingN = 0, waitingE = 0;
             Console.WriteLine($"kalkulejtuje");
+            waitingN = NorthernTrafficLight.CarsInLookingDistance.Count;
+            waitingE = EasternTrafficLight.CarsInLookingDistance.Count;
 
-            foreach (var trafficLight in TrafficLights)
-            {
-                if (trafficLight.Direction == "north")
-                {
-                    waitingN = trafficLight.CarsInLookingDistance.Count;
-                }
-                else
-                {
-                    waitingE = trafficLight.CarsInLookingDistance.Count;
-                }
-            }
             if (waitingN > 0)
             {
                 NRatio = (waitingN - waitingE) / waitingN;
@@ -55,6 +52,13 @@ namespace TrafficLightsControlSystem
             {
                 return 0;
             }
+        }
+
+        public void RefreshTrafficLights()
+        {
+            TrafficLights.Clear();
+            TrafficLights.Add(NorthernTrafficLight);
+            TrafficLights.Add(EasternTrafficLight);
         }
 
     }

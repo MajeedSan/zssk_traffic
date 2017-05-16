@@ -9,6 +9,7 @@ namespace TrafficLightsControlSystem
 {
     class TrafficLight
     {
+        private StreetCross _streetCross;
         private int _carLength = 3;
         private int _spaceBetweenCars = 1;
         private int _elapsedTime = 0;
@@ -23,9 +24,10 @@ namespace TrafficLightsControlSystem
         public List<Car> CarsInLookingDistance { get; private set; }
         public List<Car> TotalWaitingCars { get; set; }
 
-        public TrafficLight(String direction, int redTime, int greenTime, int lookingDistance, bool isGreenOn)
+        public TrafficLight(StreetCross streetCross, String direction, int redTime, int greenTime, int lookingDistance, bool isGreenOn)
         {
             ChangeLights(isGreenOn);
+            _streetCross = streetCross;
             Direction = direction;
             RedTime = redTime;
             GreenTime = greenTime;
@@ -86,6 +88,24 @@ namespace TrafficLightsControlSystem
             if (TotalWaitingCars.Count > 0)
             {
                 TotalWaitingCars.RemoveAt(0);
+                switch (Direction)
+                {
+                    case "north":
+                        if (_streetCross.NorthernStreetCross != null)
+                        {
+                            _streetCross.NorthernStreetCross.NorthernTrafficLight.AddCar();
+                        }
+                        break;
+                    case "east":
+                        if (_streetCross.EasternStreetCross != null)
+                        {
+                            _streetCross.EasternStreetCross.EasternTrafficLight.AddCar();
+                        }
+                        break;
+                    default:
+                        Console.WriteLine("Diffrent direction?");
+                        break;
+                }
             }
         }
 

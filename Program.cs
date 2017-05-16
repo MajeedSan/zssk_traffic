@@ -11,7 +11,7 @@ namespace TraffiCProject
     {
         static void Main(string[] args)
         {
-            TrafficSimulation simulation = new TrafficSimulation();
+            TrafficSimulation simulation = new TrafficSimulation(4);
             simulation.StartSimulation();
             Console.Read();
         }
