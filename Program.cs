@@ -12,7 +12,7 @@ namespace TraffiCProject
         static void Main(string[] args)
         {
             TrafficSimulation simulation = new TrafficSimulation();
-            simulation.startSimulation();
+            simulation.StartSimulation();
             Console.Read();
         }
     }

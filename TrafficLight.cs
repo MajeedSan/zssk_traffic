@@ -9,26 +9,59 @@ namespace TrafficLightsControlSystem
 {
     class TrafficLight
     {
+        private int _carLength = 3;
         private int _spaceBetweenCars = 1;
+        private int _elapsedTime = 0;
+
+        public bool IsRedOn { get; private set; }
+        public bool IsGreenOn { get; private set; }
         public String Direction { get; private set; }
         public int RedTime { get; private set; }
         public int GreenTime { get; private set; }
         public int CycleTime { get; private set; }
-        public int DecideTime { get; private set; }
         public int LookingDistance { get; private set; }
         public List<Car> CarsInLookingDistance { get; private set; }
         public List<Car> TotalWaitingCars { get; set; }
 
-        public TrafficLight(String direction, int redTime, int greenTime, int decideTime, int lookingDistance)
+        public TrafficLight(String direction, int redTime, int greenTime, int lookingDistance, bool isGreenOn)
         {
+            ChangeLights(isGreenOn);
             Direction = direction;
             RedTime = redTime;
             GreenTime = greenTime;
             CycleTime = redTime + greenTime;
-            DecideTime = decideTime;
             LookingDistance = lookingDistance;
             CarsInLookingDistance = new List<Car>();
             TotalWaitingCars = new List<Car>();
+        }
+
+        public void ChangeLights(bool isGreenOn)
+        {
+            if (isGreenOn)
+            {
+
+                IsGreenOn = true;
+                IsRedOn = false;
+            }
+            else
+            {
+                IsGreenOn = false;
+                IsRedOn = true;
+            }
+            _elapsedTime = 0;
+        }
+
+        public void CheckLightChange()
+        {
+            _elapsedTime++;
+            if (IsGreenOn && (_elapsedTime==GreenTime))
+            {
+                ChangeLights(false);
+            }
+            else if (IsRedOn && (_elapsedTime==RedTime))
+            {
+                ChangeLights(true);
+            }
         }
 
         public void IncreaseGreenTime()
@@ -42,6 +75,20 @@ namespace TrafficLightsControlSystem
             RedTime += 1;
             GreenTime -= 1;
         }
+
+        public void AddCar()
+        {
+            TotalWaitingCars.Add(new Car(_carLength));
+        }
+
+        public void RemoveCar()
+        {
+            if (TotalWaitingCars.Count > 0)
+            {
+                TotalWaitingCars.RemoveAt(0);
+            }
+        }
+
 
         public void CheckCarsInLookingDistance()
         {
