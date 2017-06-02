@@ -61,5 +61,9 @@ namespace TrafficLightsControlSystem
             TrafficLights.Add(EasternTrafficLight);
         }
 
+        public bool IsStreetCrossEmpty()
+        {
+            return (NorthernTrafficLight.TotalWaitingCars.Count <= 0 && EasternTrafficLight.TotalWaitingCars.Count <= 0);
+        }
     }
 }

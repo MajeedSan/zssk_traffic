@@ -32,7 +32,8 @@ namespace TrafficLightsControlSystem
         {
             createStreetCrossWeb();
             connectStreetCrossWeb();
-            while (_timeInSeconds < 60)
+            
+            while (!IsStreetCrossWebEmpty())
             {
                 System.Threading.Thread.Sleep(500);
                 _timeInSeconds++;
@@ -124,6 +125,19 @@ namespace TrafficLightsControlSystem
                     _streetCrossWeb[j, i].NorthernStreetCross = _streetCrossWeb[j, i-1];
                 }
             }
+        }
+
+        private bool IsStreetCrossWebEmpty()
+        {
+            foreach (var streetCross in _streetCrossWeb)
+            {
+                if (!streetCross.IsStreetCrossEmpty())
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
