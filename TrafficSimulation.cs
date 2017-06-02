@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -16,6 +17,8 @@ namespace TrafficLightsControlSystem
         private int _numberOfStreetCrosses;
         private int _numberOfColumns;
         private StreetCross[,] _streetCrossWeb;
+        private StreamWriter northOutputFile;
+        private StreamWriter eastOutputFile;
 
         public TrafficSimulation(int numberOfStreetCrosses)
         {
@@ -32,8 +35,10 @@ namespace TrafficLightsControlSystem
         {
             createStreetCrossWeb();
             connectStreetCrossWeb();
+            
             while (_timeInSeconds < 60)
             {
+                SaveDataToFiles();
                 System.Threading.Thread.Sleep(500);
                 _timeInSeconds++;
                 foreach (var streetCross in _streetCrossWeb)
@@ -41,6 +46,7 @@ namespace TrafficLightsControlSystem
                         HandleStreetCross(streetCross);
                 }
             }
+            
         }
 
         public void HandleStreetCross(StreetCross streetCross)
@@ -52,6 +58,7 @@ namespace TrafficLightsControlSystem
                 Console.WriteLine($"[{trafficLight.Direction}] Number of cars in looking distance: {trafficLight.CarsInLookingDistance.Count}");
                 Console.WriteLine($"[{trafficLight.Direction}] Green time: {trafficLight.GreenTime}");
                 Console.WriteLine($"[{trafficLight.Direction}] Red Time: {trafficLight.RedTime}");
+              
 
                 trafficLight.CheckLightChange();
                 if (trafficLight.IsGreenOn)
@@ -124,6 +131,31 @@ namespace TrafficLightsControlSystem
                     _streetCrossWeb[j, i].NorthernStreetCross = _streetCrossWeb[j, i-1];
                 }
             }
+        }
+
+        public void SaveDataToFiles()
+        {
+            northOutputFile = new StreamWriter("north.csv", true);
+            eastOutputFile = new StreamWriter("east.csv", true);
+
+            foreach (var streetCross in _streetCrossWeb)
+            {
+                foreach(var trafficLight in streetCross.TrafficLights)
+                {
+                    switch (trafficLight.Direction)
+                    {
+                        case "north":
+                            string line = $"{_timeInSeconds};{trafficLight.TotalWaitingCars.Count.ToString()}";
+                            northOutputFile.WriteLine(line);
+                            break;
+                        case "east":
+                            eastOutputFile.WriteLine($"{_timeInSeconds};{trafficLight.TotalWaitingCars.Count.ToString()}");
+                            break;
+                    }
+                }
+            }
+            northOutputFile.Close();
+            eastOutputFile.Close();
         }
     }
 }

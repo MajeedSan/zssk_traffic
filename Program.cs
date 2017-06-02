@@ -13,12 +13,9 @@ namespace TraffiCProject
         [STAThread]
         static void Main(string[] args)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new TrafficSim());
-            // TrafficSimulation simulation = new TrafficSimulation(4);
-            // simulation.StartSimulation();
-            // Console.Read();
+            TrafficSimulation simulation = new TrafficSimulation(1);
+            simulation.StartSimulation();
+            Console.Read();
         }
     }
 }
