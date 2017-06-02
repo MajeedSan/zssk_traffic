@@ -36,7 +36,7 @@ namespace TrafficLightsControlSystem
             createStreetCrossWeb();
             connectStreetCrossWeb();
             
-            while (_timeInSeconds < 60)
+            while (!IsStreetCrossWebEmpty())
             {
                 SaveDataToFiles();
                 System.Threading.Thread.Sleep(500);
@@ -140,7 +140,7 @@ namespace TrafficLightsControlSystem
 
             foreach (var streetCross in _streetCrossWeb)
             {
-                foreach(var trafficLight in streetCross.TrafficLights)
+                foreach (var trafficLight in streetCross.TrafficLights)
                 {
                     switch (trafficLight.Direction)
                     {
@@ -156,6 +156,19 @@ namespace TrafficLightsControlSystem
             }
             northOutputFile.Close();
             eastOutputFile.Close();
+        }
+
+        private bool IsStreetCrossWebEmpty()
+        {
+            foreach (var streetCross in _streetCrossWeb)
+            {
+                if (!streetCross.IsStreetCrossEmpty())
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
