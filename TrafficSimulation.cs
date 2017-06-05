@@ -11,14 +11,20 @@ namespace TrafficLightsControlSystem
 {
     class TrafficSimulation
     {
+        //-----------Wykresy-----------------
+        private int _decideTime = 10;
+        private int _lookingDistance = 100;
+        private int _timeRedGreen = 10;
+        private int _numberOfCarsNorth = 40;
+        private int _numberOfCarsEast = 80;
+        //-----------------------------------
         private int _nRatio;
         private int _carCrossingTime = 2;
         private int _timeInSeconds = 0;
+        
         private int _numberOfStreetCrosses;
         private int _numberOfColumns;
         private StreetCross[,] _streetCrossWeb;
-        private StreamWriter northOutputFile;
-        private StreamWriter eastOutputFile;
 
         public TrafficSimulation(int numberOfStreetCrosses)
         {
@@ -33,20 +39,21 @@ namespace TrafficLightsControlSystem
 
         public void StartSimulation()
         {
-            createStreetCrossWeb();
-            connectStreetCrossWeb();
+            CreateStreetCrossWeb();
+            ConnectStreetCrossWeb();
+            SaveDataHeadersToFiles();
             
             while (!IsStreetCrossWebEmpty())
             {
                 SaveDataToFiles();
                 System.Threading.Thread.Sleep(500);
                 _timeInSeconds++;
+                int i = 0;
                 foreach (var streetCross in _streetCrossWeb)
                 {
-                        HandleStreetCross(streetCross);
+                    HandleStreetCross(streetCross);
                 }
-            }
-            
+            }  
         }
 
         public void HandleStreetCross(StreetCross streetCross)
@@ -67,7 +74,7 @@ namespace TrafficLightsControlSystem
                 }
             }
 
-            if (_timeInSeconds % (streetCross.DecideTime / 6) == 0)
+            if (_timeInSeconds % (streetCross.DecideTime) == 0)
             {
                 switch (streetCross.CheckRatio())
                 {
@@ -88,45 +95,45 @@ namespace TrafficLightsControlSystem
             }
         }
 
-        public void AddCars(List<TrafficLight> trafficLights, int numberOfCars)
+        public void AddCars(TrafficLight trafficLight, int numberOfCars)
         {
             for (int i = 0; i < numberOfCars; i++)
             {
-                foreach (var trafficLight in trafficLights)
-                {
-                    trafficLight.AddCar();
-                }
+                trafficLight.AddCar();
             }
         }
 
-        public void createStreetCrossWeb()
+        public void CreateStreetCrossWeb()
         {
             _streetCrossWeb = new StreetCross[_numberOfColumns, _numberOfColumns];
             for (int i = 0; i < _numberOfColumns; i++)
             {
                 for (int j = 0; j < _numberOfColumns; j++)
                 {
-                    _streetCrossWeb[i, j] = new StreetCross(60);
-                    _streetCrossWeb[i, j].NorthernTrafficLight = new TrafficLight(_streetCrossWeb[i, j], "north", 10, 10, 50, true);
-                    _streetCrossWeb[i, j].EasternTrafficLight = new TrafficLight(_streetCrossWeb[i, j], "east", 10, 10, 50, false);
+                    string northLabel = $"{i}_{j}_north";
+                    string eastLabel = $"{i}_{j}_east";
+                    _streetCrossWeb[i, j] = new StreetCross(_decideTime);
+                    _streetCrossWeb[i, j].NorthernTrafficLight = new TrafficLight(northLabel, _streetCrossWeb[i, j], "north", _timeRedGreen, _timeRedGreen, _lookingDistance, true);
+                    _streetCrossWeb[i, j].EasternTrafficLight = new TrafficLight(eastLabel, _streetCrossWeb[i, j], "east", _timeRedGreen, _timeRedGreen, _lookingDistance, false);
                     _streetCrossWeb[i, j].RefreshTrafficLights();
-                    AddCars(_streetCrossWeb[i, j].TrafficLights, 20);
+                    AddCars(_streetCrossWeb[i, j].NorthernTrafficLight, _numberOfCarsNorth);
+                    AddCars(_streetCrossWeb[i, j].EasternTrafficLight, _numberOfCarsEast);
                 }
             }   
         }
 
-        public void connectStreetCrossWeb()
+        public void ConnectStreetCrossWeb()
         {
-            for (int i = 0; i < _numberOfColumns-1; i++)
+            for (int i = 0; i < _numberOfColumns; i++)
             {
-                for (int j = 0; j < _numberOfColumns - 2; j++)
+                for (int j = 0; j < _numberOfColumns - 1; j++)
                 {
                     _streetCrossWeb[j, i].EasternStreetCross = _streetCrossWeb[j + 1, i];
                 }
             }
-            for (int i = 1; i < _numberOfColumns - 1; i++)
+            for (int i = 1; i < _numberOfColumns; i++)
             {
-                for (int j = 0; j < _numberOfColumns - 2; j++)
+                for (int j = 0; j < _numberOfColumns - 1; j++)
                 {
                     _streetCrossWeb[j, i].NorthernStreetCross = _streetCrossWeb[j, i-1];
                 }
@@ -135,9 +142,6 @@ namespace TrafficLightsControlSystem
 
         public void SaveDataToFiles()
         {
-            northOutputFile = new StreamWriter("north.csv", true);
-            eastOutputFile = new StreamWriter("east.csv", true);
-
             foreach (var streetCross in _streetCrossWeb)
             {
                 foreach (var trafficLight in streetCross.TrafficLights)
@@ -145,17 +149,36 @@ namespace TrafficLightsControlSystem
                     switch (trafficLight.Direction)
                     {
                         case "north":
-                            string line = $"{_timeInSeconds};{trafficLight.TotalWaitingCars.Count.ToString()}";
-                            northOutputFile.WriteLine(line);
+                            StreamWriter northOutputFile = new StreamWriter($"{trafficLight.Label}.csv", true);
+                            northOutputFile.WriteLine($"{_timeInSeconds};{trafficLight.TotalWaitingCars.Count};{trafficLight.GreenTime};{trafficLight.RedTime}");
+                            northOutputFile.Close();
                             break;
                         case "east":
-                            eastOutputFile.WriteLine($"{_timeInSeconds};{trafficLight.TotalWaitingCars.Count.ToString()}");
+                            StreamWriter eastOutputFile = new StreamWriter($"{trafficLight.Label}.csv", true);
+                            eastOutputFile.WriteLine($"{_timeInSeconds};{trafficLight.TotalWaitingCars.Count};{trafficLight.GreenTime};{trafficLight.RedTime}");
+                            eastOutputFile.Close();
                             break;
                     }
                 }
             }
-            northOutputFile.Close();
-            eastOutputFile.Close();
+        }
+
+        public void SaveDataHeadersToFiles()
+        {
+            foreach (var streetCross in _streetCrossWeb)
+            {
+                foreach (var trafficLight in streetCross.TrafficLights)
+                {
+                    StreamWriter outputFile = new StreamWriter($"{trafficLight.Label}.csv", true);
+                    outputFile.WriteLine($"Cars North:{_numberOfCarsNorth};");
+                    outputFile.WriteLine($"Cars East:{_numberOfCarsEast};");
+                    outputFile.WriteLine($"Decide Time:{_decideTime};");
+                    outputFile.WriteLine($"Looking Dist:{_lookingDistance};");
+                    outputFile.WriteLine($"RedGreenTime:{_timeRedGreen}");
+                    outputFile.WriteLine($"Time;WaitingCars;GreenTime;RedTime");
+                    outputFile.Close();
+                }
+            }
         }
 
         private bool IsStreetCrossWebEmpty()

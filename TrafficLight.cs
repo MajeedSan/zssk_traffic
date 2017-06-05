@@ -14,6 +14,7 @@ namespace TrafficLightsControlSystem
         private int _spaceBetweenCars = 1;
         private int _elapsedTime = 0;
 
+        public string Label { get; private set; }
         public bool IsRedOn { get; private set; }
         public bool IsGreenOn { get; private set; }
         public String Direction { get; private set; }
@@ -24,8 +25,9 @@ namespace TrafficLightsControlSystem
         public List<Car> CarsInLookingDistance { get; private set; }
         public List<Car> TotalWaitingCars { get; set; }
 
-        public TrafficLight(StreetCross streetCross, String direction, int redTime, int greenTime, int lookingDistance, bool isGreenOn)
+        public TrafficLight(string label, StreetCross streetCross, String direction, int redTime, int greenTime, int lookingDistance, bool isGreenOn)
         {
+            Label = label;
             ChangeLights(isGreenOn);
             _streetCross = streetCross;
             Direction = direction;
@@ -68,14 +70,28 @@ namespace TrafficLightsControlSystem
 
         public void IncreaseGreenTime()
         {
-            GreenTime += 1;
-            RedTime -= 1;
+            if (RedTime > 5)
+            {
+                GreenTime += 1;
+                RedTime -= 1;
+            }
+            else
+            {
+                Console.WriteLine("Max GreenTime.");
+            }
         }
 
         public void IncreaseRedTime()
         {
-            RedTime += 1;
-            GreenTime -= 1;
+            if (GreenTime > 5)
+            {
+                RedTime += 1;
+                GreenTime -= 1;
+            }
+            else
+            {
+                Console.WriteLine("Max RedTime.");
+            }
         }
 
         public void AddCar()
